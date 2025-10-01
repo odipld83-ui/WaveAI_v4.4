@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaveAI - Configuration</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .config-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .panel-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .panel-subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .panel-content {
+            padding: 2rem;
+        }
+
+        .api-section {
+            margin-bottom: 3rem;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .api-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .api-section.tested {
+            border-color: #28a745;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(32, 201, 151, 0.05));
+        }
+
+        .api-section.error {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05), rgba(200, 35, 51, 0.05));
+        }
+
+        .api-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .api-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .openai-logo { background: linear-gradient(135deg, #10a37f, #16a085); color: white; }
+        .anthropic-logo { background: linear-gradient(135deg, #d4700a, #e67e22); color: white; }
+        .huggingface-logo { background: linear-gradient(135deg, #ff6b35, #f39c12); color: white; }
+
+        .api-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .status-untested {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-description {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .api-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .test-results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-results h4 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .test-detail {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .test-detail.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .test-detail.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .test-message {
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-data {
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+        }
+
+        .agent-test-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            border-radius: 15px;
+            border: 2px solid #667eea;
+        }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .agent-test-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .agent-test-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .agent-test-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+        }
+
+        .agent-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .agent-info h4 {
+            margin: 0;
+            color: #333;
+        }
+
+        .agent-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .global-actions {
+            text-align: center;
+            margin: 3rem 0;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            border: 2px solid #28a745;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0 1rem;
+            }
+
+            .panel-content {
+                padding: 1rem;
+            }
+
+            .api-section {
+                padding: 1rem;
+            }
+
+            .api-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .api-actions {
+                flex-direction: column;
+            }
+
+            .agent-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-wave-square"></i>
+            WaveAI
+        </div>
+        <div class="header-controls">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-comments"></i>
+                Chat
+            </a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="config-panel">
+            <div class="panel-header">
+                <div class="panel-title">Configuration des APIs</div>
+                <div class="panel-subtitle">Configurez vos clés API pour activer les agents IA</div>
+            </div>
+
+            <div class="panel-content">
+                <!-- OpenAI Configuration -->
+                <div class="api-section" id="openai-section">
+                    <div class="api-header">
+                        <div class="api-title">
+                            <div class="api-logo openai-logo">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            OpenAI GPT
+                        </div>
+                        <div class="api-status status-untested" id="openai-status">
+                            <i class="fas fa-question-circle"></i>
+                            Non testé
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="openai-key">Clé API OpenAI</label>
+                        <input type="password" id="openai-key" class="form-input" 
+                               placeholder="sk-..." autocomplete="off">
+                        <div class="form-description">
+                            Obtenez votre clé API sur <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>
+                            <br>Modèle utilisé: GPT-3.5 Turbo
+                        </div>
+                    </div>
+
+                    <div class="api-actions">
+                        <button class="btn btn-success" onclick="saveAPIKey('openai')">
+                            <i class="fas fa-save"></i>
+                            Sauvegarder
+                        </button>
+                        <button class="btn btn-primary" onclick="testSingleAPI('openai')">
+                            <i class="fas fa-flask"></i>
+                            Tester
+                        </button>
+                    </div>
+
+                    <div id="openai-results" class="test-results hidden">
+                        <h4>Résultats du test OpenAI</h4>
+                        <div id="openai-test-details"></div>
+                    </div>
+                </div>
+
+                <!-- Anthropic Configuration -->
+                <div class="api-section" id="anthropic-section">
+                    <div class="api-header">
+                        <div class="api-title">
+                            <div class="api-logo anthropic-logo">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            Anthropic Claude
+                        </div>
+                        <div class="api-status status-untested" id="anthropic-status">
+                            <i class="fas fa-question-circle"></i>
+                            Non testé
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="anthropic-key">Clé API Anthropic</label>
+                        <input type="password" id="anthropic-key" class="form-input" 
+                               placeholder="sk-ant-..." autocomplete="off">
+                        <div class="form-description">
+                            Obtenez votre clé API sur <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>
+                            <br>Modèle utilisé: Claude 3 Sonnet
+                        </div>
+                    </div>
+
+                    <div class="api-actions">
+                        <button class="btn btn-success" onclick="saveAPIKey('anthropic')">
+                            <i class="fas fa-save"></i>
+                            Sauvegarder
+                        </button>
+                        <button class="btn btn-primary" onclick="testSingleAPI('anthropic')">
+                            <i class="fas fa-flask"></i>
+                            Tester
+                        </button>
+                    </div>
+
+                    <div id="anthropic-results" class="test-results hidden">
+                        <h4>Résultats du test Anthropic</h4>
+                        <div id="anthropic-test-details"></div>
+                    </div>
+                </div>
+
+                <!-- Hugging Face Configuration -->
+                <div class="api-section" id="huggingface-section">
+                    <div class="api-header">
+                        <div class="api-title">
+                            <div class="api-logo huggingface-logo">
+                                🤗
+                            </div>
+                            Hugging Face (Gratuit)
+                        </div>
+                        <div class="api-status status-untested" id="huggingface-status">
+                            <i class="fas fa-question-circle"></i>
+                            Non testé
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="huggingface-key">Token Hugging Face</label>
+                        <input type="password" id="huggingface-key" class="form-input" 
+                               placeholder="hf_..." autocomplete="off">
+                        <div class="form-description">
+                            Obtenez votre token sur <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a>
+                            <br>Modèle utilisé: Llama 2 7b Chat (Gratuit)
+                        </div>
+                    </div>
+
+                    <div class="api-actions">
+                        <button class="btn btn-success" onclick="saveAPIKey('huggingface')">
+                            <i class="fas fa-save"></i>
+                            Sauvegarder
+                        </button>
+                        <button class="btn btn-primary" onclick="testSingleAPI('huggingface')">
+                            <i class="fas fa-flask"></i>
+                            Tester
+                        </button>
+                    </div>
+
+                    <div id="huggingface-results" class="test-results hidden">
+                        <h4>Résultats du test Hugging Face</h4>
+                        <div id="huggingface-test-details"></div>
+                    </div>
+                </div>
+
+                <!-- Global Actions -->
+                <div class="global-actions">
+                    <h3 style="margin-bottom: 1rem; color: #333;">Actions Globales</h3>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="testAllAPIs()" style="font-size: 1.1rem; padding: 0.75rem 1.5rem;">
+                            <i class="fas fa-flask"></i>
+                            Tester Toutes les APIs
+                        </button>
+                        <button class="btn btn-success" onclick="runCompleteTest()" style="font-size: 1.1rem; padding: 0.75rem 1.5rem;">
+                            <i class="fas fa-check-double"></i>
+                            Test Complet du Système
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Agent Testing Section -->
+                <div class="agent-test-section">
+                    <h3 style="margin-bottom: 1rem; color: #333; text-align: center;">
+                        <i class="fas fa-users"></i>
+                        Test des Agents IA
+                    </h3>
+                    <p style="text-align: center; color: #6c757d; margin-bottom: 1.5rem;">
+                        Vérifiez que chaque agent peut communiquer avec les APIs
+                    </p>
+
+                    <div class="agent-grid">
+                        <div class="agent-test-card">
+                            <div class="agent-test-header">
+                                <div class="agent-avatar">🤖</div>
+                                <div class="agent-info">
+                                    <h4>Kai</h4>
+                                    <p>Assistant général</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="testAgent('kai')" style="width: 100%;">
+                                <i class="fas fa-comment"></i>
+                                Tester Kai
+                            </button>
+                            <div id="kai-test-result" class="test-result"></div>
+                        </div>
+
+                        <div class="agent-test-card">
+                            <div class="agent-test-header">
+                                <div class="agent-avatar">📧</div>
+                                <div class="agent-info">
+                                    <h4>Alex</h4>
+                                    <p>Productivité Gmail</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="testAgent('alex')" style="width: 100%;">
+                                <i class="fas fa-comment"></i>
+                                Tester Alex
+                            </button>
+                            <div id="alex-test-result" class="test-result"></div>
+                        </div>
+
+                        <div class="agent-test-card">
+                            <div class="agent-test-header">
+                                <div class="agent-avatar">💼</div>
+                                <div class="agent-info">
+                                    <h4>Lina</h4>
+                                    <p>Expert LinkedIn</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="testAgent('lina')" style="width: 100%;">
+                                <i class="fas fa-comment"></i>
+                                Tester Lina
+                            </button>
+                            <div id="lina-test-result" class="test-result"></div>
+                        </div>
+
+                        <div class="agent-test-card">
+                            <div class="agent-test-header">
+                                <div class="agent-avatar">📱</div>
+                                <div class="agent-info">
+                                    <h4>Marco</h4>
+                                    <p>Social Media</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="testAgent('marco')" style="width: 100%;">
+                                <i class="fas fa-comment"></i>
+                                Tester Marco
+                            </button>
+                            <div id="marco-test-result" class="test-result"></div>
+                        </div>
+
+                        <div class="agent-test-card">
+                            <div class="agent-test-header">
+                                <div class="agent-avatar">📅</div>
+                                <div class="agent-info">
+                                    <h4>Sofia</h4>
+                                    <p>Calendrier</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="testAgent('sofia')" style="width: 100%;">
+                                <i class="fas fa-comment"></i>
+                                Tester Sofia
+                            </button>
+                            <div id="sofia-test-result" class="test-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chargement initial
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAPIStatus();
+        });
+
+        async function saveAPIKey(provider) {
+            const keyInput = document.getElementById(`${provider}-key`);
+            const apiKey = keyInput.value.trim();
+            
+            if (!apiKey) {
+                showAlert('Veuillez entrer une clé API valide', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/save_key', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        provider: provider,
+                        api_key: apiKey
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`Clé ${provider} sauvegardée avec succès`, 'success');
+                    updateAPIStatus(provider, 'untested', 'Clé sauvegardée');
+                } else {
+                    showAlert(`Erreur lors de la sauvegarde: ${data.message}`, 'error');
+                }
+
+            } catch (error) {
+                showAlert('Impossible de sauvegarder la clé', 'error');
+                console.error('Erreur:', error);
+            }
+        }
+
+        async function testSingleAPI(provider) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading-spinner"></div> Test...';
+            btn.disabled = true;
+
+            try {
+                // D'abord sauvegarder la clé si elle a été modifiée
+                const keyInput = document.getElementById(`${provider}-key`);
+                if (keyInput.value.trim()) {
+                    await saveAPIKey(provider);
+                }
+
+                const response = await fetch('/api/test_apis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.results[provider]) {
+                    const result = data.results[provider];
+                    updateAPIStatus(provider, result.success ? 'success' : 'error', result.message);
+                    displayTestResults(provider, result);
+                    
+                    if (result.success) {
+                        showAlert(`${provider} fonctionne correctement`, 'success');
+                    } else {
+                        showAlert(`Erreur ${provider}: ${result.message}`, 'error');
+                    }
+                } else {
+                    showAlert('Impossible de tester l\'API', 'error');
+                }
+
+            } catch (error) {
+                showAlert('Erreur lors du test', 'error');
+                console.error('Erreur:', error);
+                updateAPIStatus(provider, 'error', 'Erreur de connexion');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function testAllAPIs() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading-spinner"></div> Tests en cours...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/test_apis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    const summary = data.summary;
+                    
+                    // Mettre à jour chaque API
+                    for (const [provider, result] of Object.entries(data.results)) {
+                        updateAPIStatus(provider, result.success ? 'success' : 'error', result.message);
+                        displayTestResults(provider, result);
+                    }
+
+                    showAlert(`Tests terminés: ${summary.working}/${summary.total} APIs fonctionnelles`, 
+                             summary.working > 0 ? 'success' : 'warning');
+                } else {
+                    showAlert('Erreur lors des tests', 'error');
+                }
+
+            } catch (error) {
+                showAlert('Impossible d\'exécuter les tests', 'error');
+                console.error('Erreur:', error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function testAgent(agentName) {
+            const btn = event.target;
+            const resultDiv = document.getElementById(`${agentName}-test-result`);
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<div class="loading-spinner"></div> Test...';
+            btn.disabled = true;
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/test_agent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        agent: agentName
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success" style="margin-top: 1rem;">
+                            <i class="fas fa-check"></i>
+                            <strong>Succès!</strong><br>
+                            Provider: ${data.provider}<br>
+                            Réponse: "${data.response.substring(0, 100)}..."
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-error" style="margin-top: 1rem;">
+                            <i class="fas fa-times"></i>
+                            <strong>Erreur:</strong> ${data.message}
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-error" style="margin-top: 1rem;">
+                        <i class="fas fa-times"></i>
+                        <strong>Erreur:</strong> Impossible de contacter l'agent
+                    </div>
+                `;
+                console.error('Erreur:', error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function runCompleteTest() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loading-spinner"></div> Test complet...';
+            btn.disabled = true;
+
+            try {
+                showAlert('Démarrage du test complet du système...', 'success');
+                
+                // 1. Test des APIs
+                await testAllAPIs();
+                
+                // 2. Test des agents
+                const agents = ['kai', 'alex', 'lina', 'marco', 'sofia'];
+                for (const agent of agents) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Pause
+                    await testAgent(agent);
+                }
+
+                showAlert('Test complet terminé! Vérifiez les résultats ci-dessus.', 'success');
+
+            } catch (error) {
+                showAlert('Erreur lors du test complet', 'error');
+                console.error('Erreur:', error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function updateAPIStatus(provider, status, message) {
+            const statusElement = document.getElementById(`${provider}-status`);
+            const sectionElement = document.getElementById(`${provider}-section`);
+            
+            // Supprimer les anciennes classes
+            statusElement.className = 'api-status';
+            sectionElement.classList.remove('tested', 'error');
+            
+            // Ajouter les nouvelles classes et contenu
+            if (status === 'success') {
+                statusElement.className += ' status-success';
+                statusElement.innerHTML = '<i class="fas fa-check-circle"></i> Fonctionnel';
+                sectionElement.classList.add('tested');
+            } else if (status === 'error') {
+                statusElement.className += ' status-error';
+                statusElement.innerHTML = '<i class="fas fa-times-circle"></i> Erreur';
+                sectionElement.classList.add('error');
+            } else {
+                statusElement.className += ' status-untested';
+                statusElement.innerHTML = '<i class="fas fa-question-circle"></i> ' + message;
+            }
+        }
+
+        function displayTestResults(provider, result) {
+            const resultsDiv = document.getElementById(`${provider}-results`);
+            const detailsDiv = document.getElementById(`${provider}-test-details`);
+            
+            resultsDiv.classList.remove('hidden');
+            
+            let html = `
+                <div class="test-detail ${result.success ? 'success' : 'error'}">
+                    <div class="test-title">
+                        <i class="fas fa-${result.success ? 'check' : 'times'}"></i>
+                        ${result.success ? 'Test réussi' : 'Test échoué'}
+                    </div>
+                    <div class="test-message">${result.message}</div>
+            `;
+            
+            if (result.data) {
+                html += `<div class="test-data">${JSON.stringify(result.data, null, 2)}</div>`;
+            }
+            
+            html += '</div>';
+            detailsDiv.innerHTML = html;
+        }
+
+        async function loadAPIStatus() {
+            try {
+                const response = await fetch('/api/get_api_status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    for (const [provider, info] of Object.entries(data.apis)) {
+                        const keyInput = document.getElementById(`${provider}-key`);
+                        if (keyInput) {
+                            keyInput.value = ''; // Ne pas pré-remplir pour la sécurité
+                            keyInput.placeholder = `Clé configurée: ${info.key_preview}`;
+                        }
+                        
+                        const status = info.status === 'success' ? 'success' : 
+                                     info.status === 'error' ? 'error' : 'untested';
+                        updateAPIStatus(provider, status, info.status);
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement du statut:', error);
+            }
+        }
+
+        function showAlert(message, type) {
+            // Créer et afficher une alerte temporaire
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'exclamation-triangle'}"></i>
+                ${message}
+            `;
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                max-width: 400px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => document.body.removeChild(alertDiv), 300);
+            }, 5000);
+        }
+    </script>
+
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</body>
+</html>

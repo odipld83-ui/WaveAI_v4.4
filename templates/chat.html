@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaveAI - Chat avec les Agents IA</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            max-width: 1200px;
+            margin: 2rem auto;
+            gap: 2rem;
+            padding: 0 2rem;
+            width: 100%;
+        }
+
+        .agents-panel {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .agents-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #333;
+            text-align: center;
+        }
+
+        .agent-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .agent-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .agent-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .agent-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .agent-card.active .agent-avatar {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .agent-name {
+            font-weight: bold;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+
+        .agent-role {
+            font-size: 0.8rem;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .current-agent {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-description {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .api-status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .status-working { background-color: rgba(40, 167, 69, 0.8); }
+        .status-error { background-color: rgba(220, 53, 69, 0.8); }
+        .status-unknown { background-color: rgba(108, 117, 125, 0.8); }
+
+        .chat-messages {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .agent-message-avatar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .message-content {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message-info {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #messageInput {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .control-btn.recording {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #667eea;
+            font-style: italic;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 3px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 0 1rem;
+                gap: 1rem;
+            }
+
+            .agents-panel {
+                width: 100%;
+                display: flex;
+                overflow-x: auto;
+                padding: 1rem;
+            }
+
+            .agents-title {
+                display: none;
+            }
+
+            .agent-card {
+                min-width: 120px;
+                margin-right: 1rem;
+                margin-bottom: 0;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+
+            .header-controls {
+                gap: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-wave-square"></i>
+            WaveAI
+        </div>
+        <div class="header-controls">
+            <button class="btn btn-primary" onclick="testAllAPIs()">
+                <i class="fas fa-flask"></i>
+                Tester APIs
+            </button>
+            <a href="/settings" class="btn btn-primary">
+                <i class="fas fa-cog"></i>
+                Configuration
+            </a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="agents-panel">
+            <div class="agents-title">Choisir un Agent</div>
+            
+            <div class="agent-card active" data-agent="kai">
+                <div class="agent-avatar">🤖</div>
+                <div class="agent-name">Kai</div>
+                <div class="agent-role">Assistant général</div>
+            </div>
+
+            <div class="agent-card" data-agent="alex">
+                <div class="agent-avatar">📧</div>
+                <div class="agent-name">Alex</div>
+                <div class="agent-role">Productivité Gmail</div>
+            </div>
+
+            <div class="agent-card" data-agent="lina">
+                <div class="agent-avatar">💼</div>
+                <div class="agent-name">Lina</div>
+                <div class="agent-role">Expert LinkedIn</div>
+            </div>
+
+            <div class="agent-card" data-agent="marco">
+                <div class="agent-avatar">📱</div>
+                <div class="agent-name">Marco</div>
+                <div class="agent-role">Social Media</div>
+            </div>
+
+            <div class="agent-card" data-agent="sofia">
+                <div class="agent-avatar">📅</div>
+                <div class="agent-name">Sofia</div>
+                <div class="agent-role">Calendrier</div>
+            </div>
+        </div>
+
+        <div class="chat-panel">
+            <div class="chat-header">
+                <div class="current-agent" id="currentAgentName">Kai</div>
+                <div class="agent-description" id="currentAgentDescription">Assistant conversationnel général</div>
+                <div class="api-status status-unknown" id="apiStatus">
+                    <i class="fas fa-question-circle"></i>
+                    Statut API: Non testé
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message">
+                    <div class="message-avatar agent-message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div>Bonjour ! Je suis Kai, votre assistant IA. Comment puis-je vous aider aujourd'hui ?</div>
+                        <div class="message-info">Assistant IA • À l'instant</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Tapez votre message ici..."
+                            rows="1"
+                        ></textarea>
+                    </div>
+                    <div class="input-controls">
+                        <div class="file-upload">
+                            <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx" multiple>
+                            <button class="control-btn" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                        </div>
+                        <button class="control-btn" id="voiceBtn" onclick="toggleVoiceRecording()">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="control-btn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAgent = 'kai';
+        let isRecording = false;
+        let recognition = null;
+
+        // Configuration des agents
+        const agentConfig = {
+            kai: {
+                name: 'Kai',
+                description: 'Assistant conversationnel général',
+                avatar: '🤖'
+            },
+            alex: {
+                name: 'Alex', 
+                description: 'Assistant productivité et gestion Gmail',
+                avatar: '📧'
+            },
+            lina: {
+                name: 'Lina',
+                description: 'Experte LinkedIn et réseautage professionnel',
+                avatar: '💼'
+            },
+            marco: {
+                name: 'Marco',
+                description: 'Spécialiste des réseaux sociaux et marketing', 
+                avatar: '📱'
+            },
+            sofia: {
+                name: 'Sofia',
+                description: 'Organisatrice de calendrier et planification',
+                avatar: '📅'
+            }
+        };
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            setupVoiceRecognition();
+            checkAPIStatus();
+        });
+
+        function setupEventListeners() {
+            // Sélection d'agent
+            document.querySelectorAll('.agent-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectAgent(this.dataset.agent);
+                });
+            });
+
+            // Envoi par Enter
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Auto-resize textarea
+            document.getElementById('messageInput').addEventListener('input', autoResize);
+
+            // Upload de fichiers
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        }
+
+        function setupVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'fr-FR';
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('messageInput').value = transcript;
+                    autoResize();
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Erreur reconnaissance vocale:', event.error);
+                    showMessage('Erreur lors de la reconnaissance vocale', 'error');
+                };
+
+                recognition.onend = function() {
+                    isRecording = false;
+                    updateVoiceButton();
+                };
+            } else {
+                document.getElementById('voiceBtn').style.display = 'none';
+                console.log('Reconnaissance vocale non supportée');
+            }
+        }
+
+        function selectAgent(agentName) {
+            currentAgent = agentName;
+            
+            // Mettre à jour l'interface
+            document.querySelectorAll('.agent-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`[data-agent="${agentName}"]`).classList.add('active');
+
+            // Mettre à jour l'en-tête du chat
+            const config = agentConfig[agentName];
+            document.getElementById('currentAgentName').textContent = config.name;
+            document.getElementById('currentAgentDescription').textContent = config.description;
+
+            // Ajouter un message de changement d'agent
+            addMessage('system', '', `Vous parlez maintenant avec ${config.name} - ${config.description}`);
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Ajouter le message utilisateur
+            addMessage('user', 'Vous', message);
+            input.value = '';
+            autoResize();
+
+            // Afficher l'indicateur de frappe
+            const loadingId = addMessage('agent', agentConfig[currentAgent].name, '', true);
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        agent: currentAgent
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Supprimer l'indicateur de frappe
+                document.getElementById(loadingId).remove();
+
+                if (data.success) {
+                    addMessage('agent', data.agent, data.response);
+                    updateAPIStatus(data.api_working, data.provider);
+                } else {
+                    addMessage('agent', 'Erreur', data.message || 'Erreur lors du traitement', false, 'error');
+                }
+
+            } catch (error) {
+                document.getElementById(loadingId).remove();
+                addMessage('agent', 'Erreur', 'Impossible de contacter le serveur', false, 'error');
+                console.error('Erreur:', error);
+            }
+        }
+
+        function addMessage(type, sender, content, isLoading = false, messageType = 'normal') {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageId = 'msg-' + Date.now();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.id = messageId;
+
+            let avatarContent = '';
+            let messageClass = '';
+            
+            if (type === 'user') {
+                avatarContent = '<i class="fas fa-user"></i>';
+                messageClass = 'user-avatar';
+            } else if (type === 'agent') {
+                avatarContent = agentConfig[currentAgent] ? agentConfig[currentAgent].avatar : '🤖';
+                messageClass = 'agent-message-avatar';
+            } else if (type === 'system') {
+                avatarContent = '<i class="fas fa-info-circle"></i>';
+                messageClass = 'agent-message-avatar';
+            }
+
+            let contentHTML = '';
+            if (isLoading) {
+                contentHTML = `
+                    <div class="loading">
+                        <span class="typing-indicator">
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                        </span>
+                        <span>Agent en train de réfléchir...</span>
+                    </div>
+                `;
+            } else {
+                const timestamp = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                contentHTML = `
+                    <div>${content}</div>
+                    <div class="message-info">${sender} • ${timestamp}</div>
+                `;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar ${messageClass}">
+                    ${avatarContent}
+                </div>
+                <div class="message-content ${messageType === 'error' ? 'error-message' : ''}">
+                    ${contentHTML}
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return messageId;
+        }
+
+        function toggleVoiceRecording() {
+            if (!recognition) {
+                showMessage('Reconnaissance vocale non supportée', 'error');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                isRecording = false;
+            } else {
+                recognition.start();
+                isRecording = true;
+            }
+            
+            updateVoiceButton();
+        }
+
+        function updateVoiceButton() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (isRecording) {
+                voiceBtn.classList.add('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+            } else {
+                voiceBtn.classList.remove('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            }
+        }
+
+        function autoResize() {
+            const textarea = document.getElementById('messageInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function handleFileUpload(event) {
+            const files = Array.from(event.target.files);
+            if (files.length > 0) {
+                const fileNames = files.map(f => f.name).join(', ');
+                addMessage('system', '', `Fichiers sélectionnés: ${fileNames}`);
+                // TODO: Implémenter l'upload réel des fichiers
+            }
+        }
+
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch('/api/get_api_status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const totalConfigured = data.total_configured;
+                    const statusElement = document.getElementById('apiStatus');
+                    
+                    if (totalConfigured > 0) {
+                        statusElement.innerHTML = `<i class="fas fa-check-circle"></i> ${totalConfigured} API(s) configurée(s)`;
+                        statusElement.className = 'api-status status-working';
+                    } else {
+                        statusElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Aucune API configurée';
+                        statusElement.className = 'api-status status-error';
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors de la vérification du statut API:', error);
+            }
+        }
+
+        async function testAllAPIs() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Test en cours...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/test_apis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    const summary = data.summary;
+                    showMessage(`Test terminé: ${summary.working}/${summary.total} APIs fonctionnelles`, 'success');
+                    
+                    // Mettre à jour le statut
+                    const statusElement = document.getElementById('apiStatus');
+                    if (summary.working > 0) {
+                        statusElement.innerHTML = `<i class="fas fa-check-circle"></i> ${summary.working}/${summary.total} APIs fonctionnelles`;
+                        statusElement.className = 'api-status status-working';
+                    } else {
+                        statusElement.innerHTML = '<i class="fas fa-times-circle"></i> Aucune API fonctionnelle';
+                        statusElement.className = 'api-status status-error';
+                    }
+                } else {
+                    showMessage('Erreur lors du test des APIs', 'error');
+                }
+
+            } catch (error) {
+                showMessage('Impossible de tester les APIs', 'error');
+                console.error('Erreur:', error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function updateAPIStatus(isWorking, provider) {
+            const statusElement = document.getElementById('apiStatus');
+            if (isWorking) {
+                statusElement.innerHTML = `<i class="fas fa-check-circle"></i> API ${provider} fonctionnelle`;
+                statusElement.className = 'api-status status-working';
+            } else {
+                statusElement.innerHTML = '<i class="fas fa-times-circle"></i> Problème API';
+                statusElement.className = 'api-status status-error';
+            }
+        }
+
+        function showMessage(message, type = 'info') {
+            // Créer un toast/notification temporaire
+            const toast = document.createElement('div');
+            toast.className = type === 'error' ? 'error-message' : 'success-message';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                padding: 1rem 1.5rem;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</body>
+</html>
