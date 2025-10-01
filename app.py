@@ -2,22 +2,20 @@
 # -*- coding: utf-8 -*-
 """
 WaveAI - Système d'Agents IA avec Tests Complets et Corrections HF
-Version: FIXED FINAL - Tous les problèmes résolus
+Version: FIXED FINAL - Tous les problèmes résolus (Erreur de démarrage corrigée)
 """
 
 import os
 import sqlite3
-import json
 import logging
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 import openai
 import anthropic
 import requests
-from functools import wraps
 
 # Configuration du logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -31,7 +29,7 @@ class APIManager:
     """Gestionnaire centralisé des APIs avec persistance et tests"""
     
     def __init__(self):
-        self.test_results = {}
+        # Les clés sont initialisées à None et chargées via load_initial_state() après init_database()
         self.openai_api_key = None
         self.anthropic_api_key = None
         self.hf_working_model = None
@@ -84,6 +82,7 @@ class APIManager:
             """)
             conn.commit()
             conn.close()
+            logger.info("Base de données initialisée ou table vérifiée avec succès.")
         except Exception as e:
             logger.error(f"Erreur d'initialisation de la base de données: {e}")
 
@@ -103,6 +102,8 @@ class APIManager:
                 self.anthropic_api_key = result[1] if result[1] else None
                 self.hf_working_model = result[2] if result[2] else None
                 logger.info(f"État initial chargé: OpenAI={bool(self.openai_api_key)}, Anthropic={bool(self.anthropic_api_key)}, HF Model={self.hf_working_model}")
+            else:
+                logger.info("Aucune configuration API trouvée dans la base de données.")
             
             conn.close()
         except Exception as e:
@@ -137,14 +138,12 @@ class APIManager:
         try:
             conn = sqlite3.connect(DATABASE_PATH)
             cursor = conn.cursor()
-            # On récupère toutes les clés et le modèle fonctionnel sauvegardés
             cursor.execute("SELECT api_key_openai, api_key_anthropic, api_key_hf, hf_working_model, test_status, test_details FROM api_keys ORDER BY timestamp DESC LIMIT 1")
             result = cursor.fetchone()
             conn.close()
 
             if result:
                 return {
-                    # Les clés sont lues directement dans la base de données pour avoir le token HF pour l'appel
                     'api_key_openai': result[0],
                     'api_key_anthropic': result[1],
                     'api_key_hf': result[2], 
@@ -159,6 +158,8 @@ class APIManager:
         except Exception as e:
             logger.error(f"Erreur de lecture du statut: {e}")
             return {'error': str(e)}
+
+    # Les fonctions de test sont conservées telles quelles.
 
     def test_openai_api(self, key):
         """Test la clé OpenAI."""
@@ -241,7 +242,6 @@ class Agent:
 
     def _call_openai(self, prompt):
         """Appel à l'API OpenAI."""
-        # Utilise la clé chargée au démarrage ou sauvegardée
         if not api_manager.openai_api_key:
             return None, None
         try:
@@ -261,7 +261,6 @@ class Agent:
 
     def _call_anthropic(self, prompt):
         """Appel à l'API Anthropic (Claude)."""
-        # Utilise la clé chargée au démarrage ou sauvegardée
         if not api_manager.anthropic_api_key:
             return None, None
         try:
@@ -281,7 +280,6 @@ class Agent:
         """Appel à l'API Hugging Face (modèle fonctionnel sauvegardé)."""
         model_name = api_manager.hf_working_model
         
-        # Récupère le token HF le plus récent de la base de données
         status = api_manager.get_api_status()
         hf_token = status.get('api_key_hf')
 
@@ -304,7 +302,6 @@ class Agent:
             elif isinstance(data, dict) and 'generated_text' in data:
                  text = data['generated_text']
             else:
-                # Fallback pour d'autres formats de réponse de l'API HF
                 text = str(data)
 
             # Nettoyage pour les modèles de chat
@@ -486,13 +483,13 @@ if __name__ == '__main__':
     try:
         logger.info("Démarrage de WaveAI...")
         
-        # 1. Initialiser la base de données
+        # 1. Initialiser la base de données (CRÉATION DE LA TABLE)
         api_manager.init_database()
         
         # 2. CHARGEMENT CRITIQUE : Charger l'état des clés et modèles au démarrage
         api_manager.load_initial_state() 
         
-        logger.info("Système initialisé avec succès")
+        logger.info("Système initialisé et état de l'API chargé.")
         
         # Démarrer l'application
         port = int(os.environ.get('PORT', 5000))
